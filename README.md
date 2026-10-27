@@ -7,7 +7,7 @@ Website bán đồ gia dụng Homely, xây dựng bằng PHP thuần với các 
 ### Khách chưa đăng nhập
 
 - Xem trang chủ, giới thiệu, sản phẩm và chi tiết sản phẩm.
-- Tìm kiếm sản phẩm.
+- Tìm kiếm sản phẩm trực tiếp (live search) theo tên hoặc mô tả, không cần tải lại trang.
 - Xem câu hỏi thường gặp và thông tin liên hệ.
 - Đăng ký tài khoản và đăng nhập.
 - Khi thêm sản phẩm vào giỏ hàng hoặc mở giỏ hàng, hệ thống chuyển tới trang đăng nhập.

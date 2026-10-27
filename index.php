@@ -41,7 +41,7 @@ function render(string $title, string $content, string $description = ''): void
     echo '<main>';
     if ($success) echo '<div class="container"><div class="alert success">' . e($success) . '</div></div>';
     if ($error) echo '<div class="container"><div class="alert">' . e($error) . '</div></div>';
-    echo $content . '</main><footer class="footer"><div class="container footer-grid"><div><div class="brand">Home<span>ly</span></div><p class="muted">Đồ gia dụng hữu ích, giúp việc nhà nhẹ nhàng và cuộc sống tiện nghi hơn.</p></div><div><strong>Khám phá</strong><p><a href="' . url('gioi-thieu') . '">Về Homely</a><br><a href="' . url('san-pham') . '">Đồ gia dụng</a><br><a href="' . url('hoi-dap') . '">Hỏi đáp</a></p></div><div><strong>Liên hệ</strong><p class="muted">' . e($company['phone']) . '<br>' . e($company['email']) . '<br>' . e($company['address']) . '</p></div></div><div class="container copyright">© ' . date('Y') . ' Homely. All rights reserved.</div></footer><script src="' . url('assets/js/app.js') . '"></script></body></html>';
+    echo $content . '</main><footer class="footer"><div class="container footer-grid"><div><div class="brand">Home<span>ly</span></div><p class="muted">Đồ gia dụng hữu ích, giúp việc nhà nhẹ nhàng và cuộc sống tiện nghi hơn.</p></div><div><strong>Khám phá</strong><p><a href="' . url('gioi-thieu') . '">Về Homely</a><br><a href="' . url('san-pham') . '">Đồ gia dụng</a><br><a href="' . url('hoi-dap') . '">Hỏi đáp</a></p></div><div><strong>Liên hệ</strong><p class="muted">' . e($company['phone']) . '<br>' . e($company['email']) . '<br>' . e($company['address']) . '</p></div></div><div class="container copyright">© ' . date('Y') . ' Homely. All rights reserved.</div></footer><script src="' . url('assets/js/app.js?v=2026102718') . '"></script></body></html>';
 }
 
 function page_head(string $title, string $intro): string
@@ -143,7 +143,22 @@ try {
     }
     if ($page === 'san-pham') {
         $keyword = trim($_GET['q'] ?? ''); $stmt = db()->prepare('SELECT * FROM products WHERE status=1 AND (name LIKE ? OR description LIKE ?) ORDER BY id DESC'); $like = '%' . $keyword . '%'; $stmt->execute([$like,$like]);
-        render('Đồ gia dụng', page_head('Đồ gia dụng', 'Sản phẩm tiện ích cho căn bếp, phòng tắm và mọi góc nhỏ trong gia đình.') . '<section class="section"><div class="container"><form class="search" method="get"><input class="form-control" name="q" value="' . e($keyword) . '" placeholder="Tìm đồ gia dụng..."><button class="btn">Tìm kiếm</button></form>' . products_html($stmt->fetchAll()) . '</div></section>'); exit;
+        if (isset($_GET['live']) && $_GET['live'] === '1') {
+            header('Content-Type: application/json; charset=UTF-8');
+            $products = [];
+            foreach ($stmt->fetchAll() as $product) {
+                $products[] = [
+                    'name' => $product['name'],
+                    'slug' => $product['slug'],
+                    'description' => $product['description'],
+                    'price' => format_price($product['price']),
+                    'image' => local_image_url($product['image'] ?? null),
+                ];
+            }
+            echo json_encode(['products' => $products], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            exit;
+        }
+        render('Đồ gia dụng', page_head('Đồ gia dụng', 'Sản phẩm tiện ích cho căn bếp, phòng tắm và mọi góc nhỏ trong gia đình.') . '<section class="section"><div class="container"><form class="search" method="get" data-live-search><input class="form-control" name="q" value="' . e($keyword) . '" placeholder="Tìm đồ gia dụng..." autocomplete="off"><button class="btn" type="submit">Tìm kiếm</button></form><p class="search-status muted" aria-live="polite"></p><div class="search-results">' . products_html($stmt->fetchAll()) . '</div></div></section>'); exit;
     }
     if ($page === 'gioi-thieu') { $pageData = db()->prepare('SELECT * FROM site_pages WHERE slug=? LIMIT 1'); $pageData->execute(['gioi-thieu']); $pageData = $pageData->fetch(); $pageTitle = $pageData['title'] ?? 'Về Homely'; $pageContent = $pageData['content'] ?? 'Tiện ích bắt đầu từ điều nhỏ nhất'; render('Giới thiệu', page_head($pageTitle, $pageData['meta_description'] ?? 'Thương hiệu đồ gia dụng Việt giúp việc nhà trở nên đơn giản và dễ chịu hơn.') . '<section class="section"><div class="container form-wrap"><div class="page-content">' . nl2br(e($pageContent)) . '</div></div></section>'); exit; }
     if ($page === 'hoi-dap') {
